@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -66,6 +66,7 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "cy_eth_phy_driver.h"
 /*******************************************************************************
 * Macros
 ********************************************************************************/
@@ -96,6 +97,13 @@
 #define RTOS_TICK_TO_WAIT                         (50u)
 #define UART_INPUT_TIMEOUT_MS                     (1u)
 #define UART_BUFFER_SIZE                          (50u)
+
+/* Ethernet interface ID */
+#ifdef XMC7100D_F176K4160
+#define INTERFACE_ID                        CY_ECM_INTERFACE_ETH0
+#else
+#define INTERFACE_ID                        CY_ECM_INTERFACE_ETH1
+#endif
 
 /*******************************************************************************
 * Function Prototypes
@@ -205,7 +213,7 @@ void tcp_client_task(void *arg)
         /* Connect to the TCP server. If the connection fails, retry
          * to connect to the server for MAX_TCP_SERVER_CONN_RETRIES times.
          */
-        cy_nw_ntoa((cy_nw_ip_address_t *)&tcp_server_address.ip_address, (char *)uart_input); 
+        cy_nw_ntoa((cy_nw_ip_address_t *)&tcp_server_address.ip_address, (char *)uart_input);
 
         printf("\r\nConnecting to TCP Server (IP Address: %s, Port: %d)\n\n", (char *)uart_input , TCP_SERVER_PORT);
 
@@ -214,12 +222,24 @@ void tcp_client_task(void *arg)
         if(result != CY_RSLT_SUCCESS)
         {
             printf("Failed to connect to TCP server.\n");
-            
+
             /* Give the semaphore so as to connect to TCP server.  */
             xSemaphoreGive(connect_to_server);
         }
     }
 }
+cy_ecm_phy_callbacks_t phy_callbacks =
+{
+        .phy_init = cy_eth_phy_init,
+        .phy_configure = cy_eth_phy_configure,
+        .phy_enable_ext_reg = cy_eth_phy_enable_ext_reg,
+        .phy_discover = cy_eth_phy_discover,
+        .phy_get_auto_neg_status = cy_eth_phy_get_auto_neg_status,
+        .phy_get_link_partner_cap = cy_eth_phy_get_link_partner_cap,
+        .phy_get_linkspeed = cy_eth_phy_get_linkspeed,
+        .phy_get_linkstatus = cy_eth_phy_get_linkstatus,
+        .phy_reset = cy_eth_phy_reset
+};
 
 /*******************************************************************************
  * Function Name: connect_to_ethernet
@@ -236,7 +256,6 @@ cy_rslt_t connect_to_ethernet(void)
     uint8_t retry_count = 0;
 
     /* Variables used by ethernet connection manager.*/
-    cy_ecm_phy_config_t ecm_phy_config;
     cy_ecm_ip_address_t ip_addr;
 
     #if ENABLE_STATIC_IP_ADDRESS
@@ -262,14 +281,8 @@ cy_rslt_t connect_to_ethernet(void)
         printf("Ethernet connection manager initialized.\n");
     }
 
-    ecm_phy_config.interface_speed_type = CY_ECM_SPEED_TYPE_RGMII;
-    ecm_phy_config.mode = CY_ECM_DUPLEX_AUTO;
-    ecm_phy_config.phy_speed = CY_ECM_PHY_SPEED_AUTO;
-
-    /* To change the MAC address,enter the desired MAC as the second parameter 
-    in cy_ecm_ethif_init() instead of NULL. Default MAC address(00-03-19-45-00-00) 
-    is used when NULL is passed. */
-    result =  cy_ecm_ethif_init(CY_ECM_INTERFACE_ETH1, NULL, &ecm_phy_config, &ecm_handle);
+    /* Initialize the Ethernet interface and PHY driver */
+    result =  cy_ecm_ethif_init(INTERFACE_ID, &phy_callbacks, &ecm_handle);
     if (result != CY_RSLT_SUCCESS)
     {
         printf("Ethernet interface initialization failed! Error code: 0x%08"PRIx32"\n", (uint32_t)result);
@@ -279,13 +292,7 @@ cy_rslt_t connect_to_ethernet(void)
     /* Establish a connection to the ethernet network */
     while(1)
     {
-        #if ENABLE_STATIC_IP_ADDRESS
-        /* Connect to the ethernet network with the assigned static IP address */
-        result = cy_ecm_connect(ecm_handle, &static_ip_addr, &ip_addr);
-        #else
-        /* Connect to the ethernet network with the dynamically allocated IP address by DHCP */
         result = cy_ecm_connect(ecm_handle, NULL, &ip_addr);
-        #endif
         if(result != CY_RSLT_SUCCESS)
         {
             retry_count++;
@@ -431,7 +438,7 @@ cy_rslt_t connect_to_tcp_server(cy_socket_sockaddr_t address)
     {
         /* Create a TCP socket */
         conn_result = create_tcp_client_socket();
-        
+
         if(conn_result != CY_RSLT_SUCCESS)
         {
             printf("Socket creation failed!\n");
@@ -569,8 +576,8 @@ cy_rslt_t tcp_disconnection_handler(cy_socket_t socket_handle, void *arg)
  *******************************************************************************/
 void read_uart_input(uint8_t* input_buffer_ptr)
 {
-    cy_rslt_t result = CY_RSLT_SUCCESS;    
-    uint8_t *ptr = input_buffer_ptr; 
+    cy_rslt_t result = CY_RSLT_SUCCESS;
+    uint8_t *ptr = input_buffer_ptr;
     uint32_t numBytes;
 
     do

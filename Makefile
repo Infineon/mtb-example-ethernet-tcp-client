@@ -9,13 +9,13 @@
 # \copyright
 # Copyright 2018-YEAR, Cypress Semiconductor Corporation (an Infineon company)
 # SPDX-License-Identifier: Apache-2.0
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -82,8 +82,6 @@ VERBOSE=
 # added to the build
 #
 COMPONENTS=MBEDTLS LWIP FREERTOS
- 
-#RTOS_AWARE
 
 # Like COMPONENTS, but disable optional code that was enabled by default.
 DISABLE_COMPONENTS=
@@ -101,7 +99,9 @@ INCLUDES= ./libs
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"configs/mbedtls_user_config.h"'
 
 # Add additional defines to the build process (without a leading -D).
-DEFINES=$(MBEDTLSFLAGS) CYBSP_ETHERNET_CAPABLE  
+DEFINES=$(MBEDTLSFLAGS) CY_RTOS_AWARE CYBSP_ETHERNET_CAPABLE CY_RETARGET_IO_CONVERT_LF_TO_CRLF
+# Disable the data cache for XMC7000 devices
+DEFINES+=CY_DISABLE_XMC7000_DATA_CACHE
 
 # Select softfp or hardfp floating point. Default is softfp.
 VFP_SELECT=

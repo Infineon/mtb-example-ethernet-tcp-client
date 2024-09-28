@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -58,18 +58,6 @@
 */
 #define TCP_SERVER_IP        MAKE_IPV4_ADDRESS(192, 168, 1, 2)
 #define TCP_SERVER_PORT      (50007u)
-
-/* Set to 1 to use static IP addressing for TCP client */
-#define ENABLE_STATIC_IP_ADDRESS (0u)
-
-#if ENABLE_STATIC_IP_ADDRESS
-/* Set the static IP address of the TCP client keeping the gateway
- * and subnet mask address same as that of TCP server
- */
-#define TCP_STATIC_IP_ADDR   MAKE_IPV4_ADDRESS( 192, 168, 1, 8 )
-#define TCP_STATIC_GATEWAY   MAKE_IPV4_ADDRESS( 192, 168, 1, 1 )
-#define TCP_NETMASK          MAKE_IPV4_ADDRESS( 255, 255, 255, 0 )
-#endif
 
 /*******************************************************************************
 * Function Prototype

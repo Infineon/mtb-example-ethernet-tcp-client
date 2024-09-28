@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #******************************************************************************
 # File Name:   tcp_server.py
 #
@@ -7,7 +9,7 @@
 #
 #
 #******************************************************************************
-# Copyright 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+# Copyright 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 # an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 #
 # This software, including source code, documentation and related
@@ -37,13 +39,9 @@
 # including Cypress's product in a High Risk Product, the manufacturer
 # of such system or application assumes all risk of such use and in doing
 # so agrees to indemnify Cypress against all liability.
-#******************************************************************************
-
-#!/usr/bin/python
+#******************************************************************************/
 
 import socket
-import optparse
-import time
 import sys
 import threading
 
@@ -104,13 +102,13 @@ except socket.error as msg:
 if s is None:
     sys.exit(1)
 
-while True:    
+while True:
     try:
         is_client_connected = False;
         print("Listening on: IPv4 Address: %s Port: %d"%(host, port))
         conn, addr = s.accept()
         is_client_connected = True
-           
+
     except KeyboardInterrupt:
         print("Closing Connection")
         s.close()
@@ -123,20 +121,20 @@ while True:
         try:
             print("Enter your option: '1' to turn ON LED, 0 to turn"\
                         " OFF LED and Press the 'Enter' key: ")
-            
+
             data = conn.recv(RECV_BUFF_SIZE)
             if not data: break
             print("Acknowledgement from TCP Client:", data.decode('utf-8'))
             print("")
-            
+
         except socket.error:
             print("Timeout Error! TCP Client connection closed")
             break
-            
+
         except KeyboardInterrupt:
             print("Closing Connection")
             s.close()
             s = None
-            sys.exit(1)    
+            sys.exit(1)
 
 # [] END OF FILE

@@ -9,7 +9,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -119,7 +119,7 @@ int main()
     printf("============================================================\n");
     printf("               CE235593 - Ethernet:TCP Client               \n");
     printf("============================================================\n\n");
-
+    
     /* Create the tasks. */
     xTaskCreate(tcp_client_task, "Network task", TCP_CLIENT_TASK_STACK_SIZE, NULL,TCP_CLIENT_TASK_PRIORITY, NULL);
 
